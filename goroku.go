@@ -18,6 +18,7 @@ const (
 
 func NewClientByIP(device_ip net.IP) *Client {
 	url := fmt.Sprintf("http://%v:8060", device_ip.String())
+	fmt.Println(url)
 	return &Client{
 		url: url,
 	}
