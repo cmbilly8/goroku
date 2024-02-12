@@ -18,7 +18,6 @@ const (
 
 func NewClientByIP(device_ip net.IP) *Client {
 	url := fmt.Sprintf("http://%v:8060", device_ip.String())
-	fmt.Println(url)
 	return &Client{
 		url: url,
 	}
@@ -32,6 +31,10 @@ func (c *Client) TogglePower() error {
 func (c *Client) VolumeUp() error {
 	err := sendCommand(cmdVolumeUp, c.url)
 	return err
+}
+
+func (c *Client) GetUrl() string {
+	return c.url
 }
 
 func getEmptyReader() *bytes.Reader {
