@@ -8,29 +8,41 @@ import (
 )
 
 type Client struct {
-	url string
+	url        string
+	httpClient *http.Client
+	reader     *bytes.Reader
 }
 
 const (
-	cmdTogglePower = "keypress/power"
-	cmdVolumeUp    = "keypress/VolumeUp"
+	CmdTogglePower = "keypress/power"
+	CmdVolumeUp    = "keypress/VolumeUp"
+	CmdVolumeDown  = "keypress/VolumeDown"
+	CmdVolumeMute  = "keypress/VolumeMute"
+	CmdHome        = "keypress/Home"
+	CmdReverse     = "keypress/Rev"
+	CmdForward     = "keypress/Fwd"
+	CmdPlay        = "keypress/Play"
+	CmdSelect      = "keypress/Select"
+	CmdLeft        = "keypress/Left"
+	CmdRight       = "keypress/Right"
+	CmdDown        = "keypress/Down"
+	CmdUp          = "keypress/Up"
+	CmdBack        = "keypress/Back"
+	CmdSkipBack    = "keypress/InstantReplay"
+	CmdInfo        = "keypress/Info"
+	CmdBackspace   = "keypress/Backspace"
+	CmdSearch      = "keypress/Search"
+	CmdEnter       = "keypress/Enter"
 )
 
 func NewClientByIP(device_ip net.IP) *Client {
 	url := fmt.Sprintf("http://%v:8060", device_ip.String())
+	reader := getEmptyReader()
 	return &Client{
-		url: url,
+		url:        url,
+		httpClient: &http.Client{},
+		reader:     reader,
 	}
-}
-
-func (c *Client) TogglePower() error {
-	err := sendCommand(cmdTogglePower, c.url)
-	return err
-}
-
-func (c *Client) VolumeUp() error {
-	err := sendCommand(cmdVolumeUp, c.url)
-	return err
 }
 
 func (c *Client) GetUrl() string {
@@ -42,8 +54,10 @@ func getEmptyReader() *bytes.Reader {
 	return bytes.NewReader(jsonBody)
 }
 
-func sendCommand(cmd string, url string) error {
-	requestURL := fmt.Sprintf("%v/%v", url, cmd)
-	_, err := http.NewRequest(http.MethodPost, requestURL, getEmptyReader())
+func (c *Client) SendCommand(Cmd string) error {
+	requestURL := fmt.Sprintf("%v/%v", c.url, Cmd)
+	fmt.Printf("Sending command: %v", requestURL)
+	req, _ := http.NewRequest(http.MethodPost, requestURL, c.reader)
+	_, err := c.httpClient.Do(req)
 	return err
 }
