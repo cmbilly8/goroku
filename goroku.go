@@ -165,7 +165,7 @@ func (c *Client) SendCommand(Cmd string) error {
 
 func (c *Client) GetDeviceInfo() (*DeviceInfo, error) {
 	var di DeviceInfo
-	err := c.getObjectFromXML("query/device-info", &di)
+	err := c.populateObjectFromGetRequest("query/device-info", &di)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return nil, err
@@ -175,7 +175,7 @@ func (c *Client) GetDeviceInfo() (*DeviceInfo, error) {
 
 func (c *Client) GetMediaPlayer() (*MediaPlayer, error) {
 	var mp MediaPlayer
-	err := c.getObjectFromXML("query/media-player", &mp)
+	err := c.populateObjectFromGetRequest("query/media-player", &mp)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return nil, err
@@ -183,7 +183,7 @@ func (c *Client) GetMediaPlayer() (*MediaPlayer, error) {
 	return &mp, nil
 }
 
-func (c *Client) getObjectFromXML(endpoint string, v interface{}) error {
+func (c *Client) populateObjectFromGetRequest(endpoint string, v interface{}) error {
 	requestURL := fmt.Sprintf("%v/%v", c.url, endpoint)
 	fmt.Printf("Sending command: %v\n", requestURL)
 
