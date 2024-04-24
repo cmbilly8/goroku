@@ -93,6 +93,27 @@ type DeviceInfo struct {
 	RoomCalibrationVersion      string  `xml:"room-calibration-version"`
 }
 
+type MediaPlayer struct {
+	State    string `xml:"state,attr"`
+	Error    string `xml:"error,attr"`
+	Plugin   Plugin `xml:"plugin"`
+	Format   Format `xml:"format"`
+	Position string `xml:"position"`
+}
+
+type Plugin struct {
+	ID        string `xml:"id,attr"`
+	Name      string `xml:"name,attr"`
+	Bandwidth string `xml:"bandwidth,attr"`
+}
+
+type Format struct {
+	Audio    string `xml:"audio,attr"`
+	Video    string `xml:"video,attr"`
+	Captions string `xml:"captions,attr"`
+	DRM      string `xml:"drm,attr"`
+}
+
 const (
 	CmdTogglePower = "keypress/power "
 	CmdVolumeUp    = "keypress/VolumeUp"
@@ -177,4 +198,41 @@ func (c *Client) GetDeviceInfo() (*DeviceInfo, error) {
 	}
 
 	return &di, nil
+}
+
+func (c *Client) GetMediaPlayer() (*MediaPlayer, error) {
+	requestURL := fmt.Sprintf("%v/query/media-player", c.url)
+	fmt.Printf("Sending command: %v\n", requestURL)
+
+	request, err := http.NewRequest(http.MethodGet, requestURL, c.reader)
+	if err != nil {
+		fmt.Println("Error creating request:", err)
+		return nil, err
+	}
+
+	response, err := c.httpClient.Do(request)
+	if err != nil {
+		fmt.Println("Problem sending request to Roku Device:", err)
+		return nil, err
+	}
+	defer func() {
+		if response != nil && response.Body != nil {
+			response.Body.Close()
+		}
+	}()
+
+	responseBody, err := io.ReadAll(response.Body)
+	if err != nil {
+		fmt.Println("Could not read the response body:", err)
+		return nil, err
+	}
+
+	var mp MediaPlayer
+	err = xml.Unmarshal(responseBody, &mp)
+	if err != nil {
+		fmt.Println("Problem unmarshalling response into MediaPlayer structure:", err)
+		return nil, err
+	}
+
+	return &mp, nil
 }
