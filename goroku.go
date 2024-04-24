@@ -164,75 +164,61 @@ func (c *Client) SendCommand(Cmd string) error {
 }
 
 func (c *Client) GetDeviceInfo() (*DeviceInfo, error) {
-	requestURL := fmt.Sprintf("%v/query/device-info", c.url)
-	fmt.Printf("Sending command: %v\n", requestURL)
-
-	request, err := http.NewRequest(http.MethodGet, requestURL, c.reader)
-	if err != nil {
-		fmt.Println("Error creating request:", err)
-		return nil, err
-	}
-
-	response, err := c.httpClient.Do(request)
-	if err != nil {
-		fmt.Println("Problem sending request to Roku Device:", err)
-		return nil, err
-	}
-	defer func() {
-		if response != nil && response.Body != nil {
-			response.Body.Close()
-		}
-	}()
-
-	responseBody, err := io.ReadAll(response.Body)
-	if err != nil {
-		fmt.Println("Could not read the response body:", err)
-		return nil, err
-	}
-
 	var di DeviceInfo
-	err = xml.Unmarshal(responseBody, &di)
+	err := c.getObjectFromXML("query/device-info", &di)
 	if err != nil {
-		fmt.Println("Problem unmarshalling response into DeviceInfo structure:", err)
+		fmt.Println("Error:", err)
 		return nil, err
 	}
-
 	return &di, nil
 }
 
 func (c *Client) GetMediaPlayer() (*MediaPlayer, error) {
-	requestURL := fmt.Sprintf("%v/query/media-player", c.url)
+	var mp MediaPlayer
+	err := c.getObjectFromXML("query/media-player", &mp)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return nil, err
+	}
+	return &mp, nil
+}
+
+func (c *Client) getObjectFromXML(endpoint string, v interface{}) error {
+	requestURL := fmt.Sprintf("%v/%v", c.url, endpoint)
 	fmt.Printf("Sending command: %v\n", requestURL)
 
 	request, err := http.NewRequest(http.MethodGet, requestURL, c.reader)
 	if err != nil {
 		fmt.Println("Error creating request:", err)
-		return nil, err
+		return err
 	}
 
 	response, err := c.httpClient.Do(request)
 	if err != nil {
-		fmt.Println("Problem sending request to Roku Device:", err)
-		return nil, err
+		fmt.Println("Problem sending request:", err)
+		return err
 	}
-	defer func() {
-		if response != nil && response.Body != nil {
-			response.Body.Close()
-		}
-	}()
+	defer response.Body.Close()
 
 	responseBody, err := io.ReadAll(response.Body)
 	if err != nil {
 		fmt.Println("Could not read the response body:", err)
-		return nil, err
+		return err
 	}
 
-	var mp MediaPlayer
-	err = xml.Unmarshal(responseBody, &mp)
+	err = unmarshalXML(responseBody, v)
 	if err != nil {
-		fmt.Println("Problem unmarshalling response into MediaPlayer structure:", err)
-		return nil, err
+		fmt.Println("Problem unmarshalling response:", err)
+		return err
 	}
 
-	return &mp, nil
+	return nil
+}
+
+func unmarshalXML(data []byte, v interface{}) error {
+	err := xml.Unmarshal(data, v)
+	if err != nil {
+		return err
+	}
+	return nil
 }
