@@ -1,6 +1,6 @@
 # Goroku
 
-This is a poorly thought out go client library to control roku TVs and devices<br>
+Go client library for sending commands to roku devices and tvs<br>
 Create a client:<br>
 `ip := net.IPv4(192, 168, 1, 1)`<br>
 `client := goroku.NewClientByIP(ip)`<br>
