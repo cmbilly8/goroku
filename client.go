@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
+	"github.com/koron/go-ssdp"
 	"io"
 	"net"
 	"net/http"
@@ -116,4 +117,26 @@ func (c *Client) populateStructFromGetRequest(endpoint string, v interface{}) er
 	}
 
 	return nil
+}
+
+func Discover() (ssdp.Service, error) {
+	interfaces, _ := net.Interfaces()
+	for _, i := range interfaces {
+		addrs, _ := i.Addrs()
+		fmt.Printf("Interface: %v, Addresses: %v\n", i.Name, addrs)
+	}
+
+	services, err := ssdp.Search("roku:ecp", 20, "239.255.255.250:1900")
+	if err != nil {
+		fmt.Println("Error during SSDP search:", err)
+		return ssdp.Service{}, err
+	}
+
+	if len(services) == 0 {
+		fmt.Println("No Roku services found on the network.")
+		return ssdp.Service{}, fmt.Errorf("no services found")
+	}
+
+	fmt.Printf("Found %d Roku services\n", len(services))
+	return services[0], nil
 }

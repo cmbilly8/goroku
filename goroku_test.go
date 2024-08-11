@@ -20,6 +20,14 @@ import (
 // 	}
 // }
 
+func TestClient_Discover(t *testing.T) {
+	service, err := goroku.Discover()
+	if err != nil {
+		fmt.Print("Error discovering service")
+	}
+	printStructFields(service)
+}
+
 func TestClient_DeviceInfo(t *testing.T) {
 	fmt.Println("Start get device info test")
 	ip := net.IPv4(192, 168, 40, 100)
